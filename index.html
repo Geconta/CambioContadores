@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>App Cambio de Contadores</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-gray-100 p-4">
+
+  <!-- LOGIN -->
+  <div id="login" class="max-w-sm mx-auto bg-white p-6 rounded shadow">
+    <h2 class="text-xl font-bold mb-4">Iniciar Sesión</h2>
+    <input id="username" type="text" placeholder="Usuario" class="w-full p-2 border rounded mb-2"/>
+    <input id="password" type="password" placeholder="Contraseña" class="w-full p-2 border rounded mb-4"/>
+    <button onclick="login()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Entrar</button>
+  </div>
+
+  <!-- APP PRINCIPAL -->
+  <div id="app" class="hidden max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold mb-4">Carga y visualización de datos</h1>
+
+    <input type="file" id="fileInput" accept=".csv, .xlsx" class="mb-4"/>
+    <div id="dataPreview" class="bg-white p-2 rounded shadow overflow-auto max-h-96"></div>
+    <div id="pagination" class="mt-2 flex space-x-1"></div>
+
+    <button onclick="mostrarSeccionOrden()" class="mt-4 bg-green-600 text-white px-4 py-2 rounded">Agregar Orden a Fila Seleccionada</button>
+    <button onclick="mostrarListaOrdenes()" class="ml-2 bg-gray-600 text-white px-4 py-2 rounded">Ver Órdenes Guardadas</button>
+  </div>
+
+  <!-- SECCIÓN PARA AGREGAR ORDEN -->
+  <div id="orden" class="hidden max-w-lg mx-auto mt-4 bg-white p-4 rounded shadow">
+    <h2 class="text-xl font-bold mb-2">Agregar Orden</h2>
+    <div id="filaSeleccionadaPreview" class="mb-4"></div>
+
+    <form id="newCounterForm" class="space-y-3">
+      <input id="newCounter" placeholder="Nuevo Contador" class="w-full p-2 border rounded" />
+      <input id="radioModule" placeholder="Radio del Módulo" class="w-full p-2 border rounded" />
+      <input id="lecturaAntigua" placeholder="Lectura Antigua" class="w-full p-2 border rounded" />
+      <input id="lecturaNueva" placeholder="Lectura Nueva" class="w-full p-2 border rounded" />
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Guardar Orden</button>
+    </form>
+
+    <button onclick="toggleScanner()" class="mt-2 bg-purple-600 text-white px-4 py-2 rounded">Escanear QR</button>
+    <div id="reader" class="hidden w-full h-64 my-2 border"></div>
+    <p id="output" class="mt-2 text-green-600 font-semibold"></p>
+
+    <button onclick="document.getElementById('orden').classList.add('hidden'); document.getElementById('app').classList.remove('hidden');" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded">Volver</button>
+  </div>
+
+  <!-- LISTA DE ÓRDENES GUARDADAS -->
+  <div id="listaOrdenes" class="hidden max-w-4xl mx-auto mt-4 bg-white p-4 rounded shadow">
+    <h2 class="text-xl font-bold mb-4">Órdenes Guardadas</h2>
+    <div id="contenedorOrdenes" class="mb-4"></div>
+    <button onclick="exportToExcel()" class="bg-green-600 text-white px-4 py-2 rounded mr-2">Exportar Excel</button>
+    <button onclick="exportToCSV()" class="bg-yellow-600 text-white px-4 py-2 rounded mr-2">Exportar CSV</button>
+    <button onclick="vaciarRegistros()" class="bg-red-600 text-white px-4 py-2 rounded">🗑️ Vaciar Registros</button>
+
+
+    <button onclick="volverAlMenu()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded">Volver al Menú</button>
+    
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
