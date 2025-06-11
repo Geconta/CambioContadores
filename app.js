@@ -305,15 +305,34 @@ function toggleScanner() {
             useBarCodeDetectorIfSupported: true
           },
           rememberLastUsedCamera: true,
-          supportedScanTypes: [
-            Html5QrcodeScanType.SCAN_TYPE_CAMERA,
-            Html5QrcodeScanType.SCAN_TYPE_FILE
-          ],
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.DATA_MATRIX
-          ]
+          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          // Mejorar la configuración para diferentes fondos
+          videoConstraints: {
+            width: { min: 640, ideal: 1280, max: 1920 },
+            height: { min: 480, ideal: 720, max: 1080 },
+            facingMode: "environment",
+            // Ajustar configuración de la cámara
+            advanced: [{
+              brightness: { min: 0, max: 255, ideal: 220 },
+              contrast: { min: 0, max: 255, ideal: 128 },
+              whiteBalanceMode: "continuous",
+              exposureMode: "continuous"
+            }]
+          }
         };
+
+        // Agregar mensaje de ayuda visual
+        const helpText = document.createElement('p');
+        helpText.className = 'text-center text-sm mt-2 text-gray-600';
+        helpText.innerHTML = `
+          Consejos para escanear:<br>
+          - Asegura buena iluminación<br>
+          - Evita reflejos en el código<br>
+          - Mantén la cámara estable<br>
+          - Si el fondo no es blanco, acerca más la cámara
+        `;
+        readerElement.parentNode.insertBefore(helpText, readerElement.nextSibling);
 
         qrScanner.start(
           backCamera.id,

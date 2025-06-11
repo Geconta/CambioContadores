@@ -49,7 +49,16 @@
     </form>
 
     <button onclick="toggleScanner()" class="mt-2 bg-purple-600 text-white px-4 py-2 rounded">Escanear QR</button>
-    <div id="reader" class="hidden w-full h-96 my-4 border rounded"></div>
+    <div id="reader" class="hidden w-full h-96 my-4 border rounded bg-black">
+      <style>
+        #reader video {
+          filter: contrast(120%) brightness(110%);
+        }
+        #reader__scan_region {
+          background: rgba(0, 0, 0, 0.7);
+        }
+      </style>
+    </div>
     <p id="output" class="mt-2 text-green-600 font-semibold"></p>
 
     <button onclick="document.getElementById('orden').classList.add('hidden'); document.getElementById('app').classList.remove('hidden');" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded">Volver</button>
