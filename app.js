@@ -294,7 +294,14 @@ function toggleScanner(targetInputId) {
   } else {
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
-        const backCamera = devices.find(device => device.label.toLowerCase().includes("back")) || devices[0];
+        // Mejorada la detección de cámara trasera para iOS
+        const backCamera = devices.find(device => 
+          device.label.toLowerCase().includes('back') || 
+          device.label.toLowerCase().includes('trasera') ||
+          device.label.toLowerCase().includes('environment') ||
+          // En iOS, la cámara trasera suele ser el último dispositivo
+          (devices.length > 1 && device === devices[devices.length - 1])
+        ) || devices[0];
 
         qrScanner = new Html5Qrcode("reader");
         readerElement.classList.remove("hidden");
@@ -303,7 +310,12 @@ function toggleScanner(targetInputId) {
           fps: 10,
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
-          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          videoConstraints: {
+            facingMode: { exact: "environment" }, // Forzar cámara trasera
+            width: { min: 640, ideal: 1280, max: 1920 },
+            height: { min: 480, ideal: 720, max: 1080 }
+          }
         };
 
         // Mensaje de ayuda
