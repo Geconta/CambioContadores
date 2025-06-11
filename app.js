@@ -292,85 +292,102 @@ function toggleScanner(targetInputId) {
       if (existingHelpText) existingHelpText.remove();
     });
   } else {
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices && devices.length) {
-        // Preferencia de cámara trasera para iOS
-        let selectedCamera = devices[0];
-        
-        // En iOS, intentar encontrar la cámara trasera
-        if (devices.length > 1) {
-          selectedCamera = devices[devices.length - 1];
-        }
+    // Verificar si estamos en iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
+    // Solicitar permisos explícitamente en iOS
+    if (isIOS) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(() => startScanner())
+        .catch(err => {
+          console.error("Error de permisos:", err);
+          alert("Error de permisos de cámara. Por favor:\n1. Ve a Configuración\n2. Safari\n3. Permisos\n4. Permite el acceso a la cámara\n5. Recarga la página");
+        });
+    } else {
+      startScanner();
+    }
+  }
 
-        qrScanner = new Html5Qrcode("reader");
-        readerElement.classList.remove("hidden");
+  function startScanner() {
+    Html5Qrcode.getCameras()
+      .then(devices => {
+        if (devices && devices.length) {
+          // Preferencia de cámara trasera
+          const backCamera = devices.find(device => 
+            device.label.toLowerCase().includes('back') || 
+            device.label.toLowerCase().includes('trasera') ||
+            device.label.toLowerCase().includes('environment')
+          ) || devices[devices.length - 1];
 
-        // Configuración optimizada para iOS
-        const config = {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: false
-          },
-          videoConstraints: {
-            deviceId: selectedCamera.deviceId,
-            facingMode: "environment",
-            width: { min: 640, ideal: 1280, max: 1920 },
-            height: { min: 480, ideal: 720, max: 1080 }
-          }
-        };
+          qrScanner = new Html5Qrcode("reader");
+          readerElement.classList.remove("hidden");
 
-        // Mensaje de ayuda
-        if (existingHelpText) existingHelpText.remove();
-        const helpText = document.createElement('p');
-        helpText.className = 'text-center text-sm mt-2 text-gray-600 scanner-help-text';
-        helpText.innerHTML = `
-          <strong>Consejos para QR:</strong><br>
-          - Centra el código en el cuadro<br>
-          - Mantén la cámara estable<br>
-          - Asegura buena iluminación<br>
-          - Permite el acceso a la cámara cuando se solicite
-        `;
-        
-        readerElement.parentNode.insertBefore(helpText, readerElement.nextSibling);
-
-        qrScanner.start(
-          selectedCamera.deviceId,
-          config,
-          (decodedText) => {
-            if (targetInputId === "newCounter" && decodedText.includes(';')) {
-              decodedText = decodedText.split(';')[1].slice(0, -4);
-            } else if (targetInputId === "radioModule") {
-              decodedText = decodedText.substring(1, 13);
+          const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+            experimentalFeatures: {
+              useBarCodeDetectorIfSupported: false
+            },
+            videoConstraints: {
+              deviceId: backCamera.deviceId,
+              facingMode: { exact: "environment" }
             }
-            
-            document.getElementById(targetInputId).value = decodedText;
-            alert("¡Código leído correctamente!");
+          };
 
-            setTimeout(() => {
-              qrScanner.stop().then(() => {
-                scannerActive = false;
-                readerElement.classList.add("hidden");
-                if (existingHelpText) existingHelpText.remove();
-              });
-            }, 500);
-          },
-          (errorMessage) => {
-            console.log("Error al escanear:", errorMessage);
-          }
-        );
+          // Mensaje de ayuda
+          if (existingHelpText) existingHelpText.remove();
+          const helpText = document.createElement('p');
+          helpText.className = 'text-center text-sm mt-2 text-gray-600 scanner-help-text';
+          helpText.innerHTML = `
+            <strong>Consejos para QR:</strong><br>
+            - Centra el código en el cuadro<br>
+            - Mantén la cámara estable<br>
+            - Asegura buena iluminación
+          `;
+          
+          readerElement.parentNode.insertBefore(helpText, readerElement.nextSibling);
 
-        scannerActive = true;
+          qrScanner.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText) => {
+              if (targetInputId === "newCounter" && decodedText.includes(';')) {
+                decodedText = decodedText.split(';')[1].slice(0, -4);
+              } else if (targetInputId === "radioModule") {
+                decodedText = decodedText.substring(1, 13);
+              }
+              
+              document.getElementById(targetInputId).value = decodedText;
+              alert("¡Código leído correctamente!");
 
-      } else {
-        alert("No se detectaron cámaras disponibles");
-      }
-    }).catch(err => {
-      console.error("Error al acceder a la cámara:", err);
-      alert("Error al acceder a la cámara. Por favor, asegúrate de dar permisos cuando se soliciten.");
-    });
+              setTimeout(() => {
+                qrScanner.stop().then(() => {
+                  scannerActive = false;
+                  readerElement.classList.add("hidden");
+                  if (existingHelpText) existingHelpText.remove();
+                });
+              }, 500);
+            },
+            (errorMessage) => {
+              console.log("Error al escanear:", errorMessage);
+            }
+          );
+
+          scannerActive = true;
+        } else {
+          alert("No se detectaron cámaras disponibles");
+        }
+      })
+      .catch(err => {
+        console.error("Error al acceder a la cámara:", err);
+        if (isIOS) {
+          alert("Por favor, permite el acceso a la cámara en Configuración > Safari > Permisos");
+        } else {
+          alert("Error al acceder a la cámara. Por favor, asegúrate de dar permisos cuando se soliciten.");
+        }
+      });
   }
 }
 
