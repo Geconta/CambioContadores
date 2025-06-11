@@ -325,7 +325,7 @@ function toggleScanner(targetInputId) {
             if (targetInputId === "newCounter" && decodedText.includes(';')) {
               decodedText = decodedText.split(';')[1].slice(0, -4);
             } else if (targetInputId === "radioModule") {
-              decodedText = decodedText.substring(1, 14);
+              decodedText = decodedText.substring(1, 13);
             }
             
             document.getElementById(targetInputId).value = decodedText;
