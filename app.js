@@ -281,7 +281,7 @@ function exportToCSV() {
 
 
 // Activar o desactivar escáner QR
-function toggleScanner(targetInputId, scanType = 'qr') {
+function toggleScanner(targetInputId) {
   const readerElement = document.getElementById("reader");
   const existingHelpText = document.querySelector('.scanner-help-text');
 
@@ -299,38 +299,22 @@ function toggleScanner(targetInputId, scanType = 'qr') {
         qrScanner = new Html5Qrcode("reader");
         readerElement.classList.remove("hidden");
 
-        // Configuración según tipo de escaneo
         const config = {
           fps: 10,
-          qrbox: scanType === 'barcode' ? 
-            { width: 300, height: 100 } : // Para códigos de barras
-            { width: 250, height: 250 },  // Para QR
-          aspectRatio: scanType === 'barcode' ? 1.777778 : 1.0,
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true
-          },
-          formatsToSupport: scanType === 'barcode' ? 
-            [
-              Html5QrcodeSupportedFormats.EAN_13,
-              Html5QrcodeSupportedFormats.CODE_128,
-              Html5QrcodeSupportedFormats.CODE_39,
-              Html5QrcodeSupportedFormats.EAN_8
-            ] : 
-            [Html5QrcodeSupportedFormats.QR_CODE]
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
         };
 
-        // Mensaje de ayuda específico
+        // Mensaje de ayuda
         if (existingHelpText) existingHelpText.remove();
         const helpText = document.createElement('p');
         helpText.className = 'text-center text-sm mt-2 text-gray-600 scanner-help-text';
-        helpText.innerHTML = scanType === 'barcode' ? 
-          `<strong>Consejos para códigos de barras:</strong><br>
-           - Mantén el código HORIZONTAL<br>
-           - Distancia: 10-15 cm<br>
-           - Evita reflejos y sombras` :
-          `<strong>Consejos para QR:</strong><br>
-           - Centra el código en el cuadro<br>
-           - Mantén la cámara estable`;
+        helpText.innerHTML = `
+          <strong>Consejos para QR:</strong><br>
+          - Centra el código en el cuadro<br>
+          - Mantén la cámara estable
+        `;
         
         readerElement.parentNode.insertBefore(helpText, readerElement.nextSibling);
 
@@ -338,27 +322,15 @@ function toggleScanner(targetInputId, scanType = 'qr') {
           backCamera.id,
           config,
           (decodedText) => {
-            console.log("Código detectado:", decodedText); // Debug
-            
-            // Procesar según el campo objetivo y tipo de código
-            if (targetInputId === "newCounter") {
-              if (scanType === 'qr' && decodedText.includes(';')) {
-                decodedText = decodedText.split(';')[1].slice(0, -4);
-              }
-              // Si es código de barras, se usa tal cual
-              document.getElementById("newCounter").value = decodedText;
+            if (targetInputId === "newCounter" && decodedText.includes(';')) {
+              decodedText = decodedText.split(';')[1].slice(0, -4);
             } else if (targetInputId === "radioModule") {
-              let numeroEmisor = decodedText;
-              if (decodedText.length > 14) {
-                numeroEmisor = decodedText.substring(1, 14);
-              }
-              document.getElementById("radioModule").value = numeroEmisor;
+              decodedText = decodedText.substring(1, 14);
             }
-
-            // Feedback visual de éxito
+            
+            document.getElementById(targetInputId).value = decodedText;
             alert("¡Código leído correctamente!");
 
-            // Cerrar el scanner
             setTimeout(() => {
               qrScanner.stop().then(() => {
                 scannerActive = false;
