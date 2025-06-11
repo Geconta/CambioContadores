@@ -283,11 +283,13 @@ function exportToCSV() {
 // Activar o desactivar escáner QR
 function toggleScanner(targetInputId) {
   const readerElement = document.getElementById("reader");
+  const existingHelpText = document.querySelector('.scanner-help-text');
 
   if (scannerActive) {
     qrScanner.stop().then(() => {
       scannerActive = false;
       readerElement.classList.add("hidden");
+      if (existingHelpText) existingHelpText.remove();
     });
   } else {
     Html5Qrcode.getCameras().then(devices => {
@@ -298,34 +300,44 @@ function toggleScanner(targetInputId) {
         readerElement.classList.remove("hidden");
 
         const config = {
-          fps: 10,
+          fps: 15,
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
           experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
           },
           rememberLastUsedCamera: true,
-          supportedScanTypes: [
-            Html5QrcodeScanType.SCAN_TYPE_CAMERA,
-            Html5QrcodeScanType.SCAN_TYPE_FILE
-          ],
+          // Configuración mejorada para códigos de barras
           formatsToSupport: [
             Html5QrcodeSupportedFormats.QR_CODE,
             Html5QrcodeSupportedFormats.EAN_13,
             Html5QrcodeSupportedFormats.CODE_128,
             Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.DATA_MATRIX
-          ]
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.CODE_93
+          ],
+          videoConstraints: {
+            width: { min: 640, ideal: 1280, max: 1920 },
+            height: { min: 480, ideal: 720, max: 1080 },
+            facingMode: "environment"
+          }
         };
 
+        // Remover mensaje de ayuda existente si hay uno
+        if (existingHelpText) existingHelpText.remove();
+
+        // Crear nuevo mensaje de ayuda
         const helpText = document.createElement('p');
-        helpText.className = 'text-center text-sm mt-2 text-gray-600';
+        helpText.className = 'text-center text-sm mt-2 text-gray-600 scanner-help-text';
         helpText.innerHTML = `
           Consejos para escanear:<br>
           - Asegura buena iluminación<br>
           - Evita reflejos en el código<br>
           - Mantén la cámara estable<br>
-          - Si el código es pequeño, acerca más la cámara
+          - Para códigos de barras: mantén el código horizontal<br>
+          - Para QR: centra el código en el cuadro
         `;
         readerElement.parentNode.insertBefore(helpText, readerElement.nextSibling);
 
@@ -351,7 +363,7 @@ function toggleScanner(targetInputId) {
               qrScanner.stop().then(() => {
                 scannerActive = false;
                 readerElement.classList.add("hidden");
-                helpText.remove();
+                if (existingHelpText) existingHelpText.remove();
               });
             }, 500);
           },
