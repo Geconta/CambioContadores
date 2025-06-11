@@ -292,21 +292,32 @@ function toggleScanner() {
   } else {
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
-        // Selecciona la cámara trasera si está disponible
         const backCamera = devices.find(device => device.label.toLowerCase().includes("back")) || devices[0];
 
         qrScanner = new Html5Qrcode("reader");
         readerElement.classList.remove("hidden");
 
+        const config = {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+          },
+          rememberLastUsedCamera: true,
+          supportedScanTypes: [
+            Html5QrcodeScanType.SCAN_TYPE_CAMERA,
+            Html5QrcodeScanType.SCAN_TYPE_FILE
+          ],
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.DATA_MATRIX
+          ]
+        };
+
         qrScanner.start(
           backCamera.id,
-          {
-            fps: 10,
-            qrbox: 300,
-            experimentalFeatures: {
-              useBarCodeDetectorIfSupported: true
-            }
-          },
+          config,
           (qrCodeMessage) => {
             const focused = document.activeElement.id;
 
@@ -320,7 +331,6 @@ function toggleScanner() {
               document.getElementById("radioModule").value = numeroEmisor;
             }
 
-            // Pequeño retardo antes de cerrar
             setTimeout(() => {
               qrScanner.stop().then(() => {
                 scannerActive = false;
@@ -329,12 +339,12 @@ function toggleScanner() {
             }, 500);
           },
           (errorMessage) => {
-            // Puedes loguear errores aquí si lo deseas
+            console.log("QR error:", errorMessage);
           }
         );
 
         scannerActive = true;
-        alert("Apunta la cámara hacia el código QR. Toca sobre la pantalla si necesitas enfocar manualmente.");
+        alert("Apunta la cámara hacia el código QR. Mantén el código en el centro del cuadro y acerca la cámara si es necesario.");
       } else {
         alert("No se detectaron cámaras disponibles.");
       }
