@@ -294,16 +294,18 @@ function toggleScanner(targetInputId) {
   } else {
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
-        const backCamera = devices.find(device => 
-          device.label.toLowerCase().includes('back') || 
-          device.label.toLowerCase().includes('trasera') ||
-          device.label.toLowerCase().includes('environment') ||
-          (devices.length > 1 && device === devices[devices.length - 1])
-        ) || devices[0];
+        // Preferencia de cámara trasera para iOS
+        let selectedCamera = devices[0];
+        
+        // En iOS, intentar encontrar la cámara trasera
+        if (devices.length > 1) {
+          selectedCamera = devices[devices.length - 1];
+        }
 
         qrScanner = new Html5Qrcode("reader");
         readerElement.classList.remove("hidden");
 
+        // Configuración optimizada para iOS
         const config = {
           fps: 10,
           qrbox: { width: 250, height: 250 },
@@ -313,6 +315,7 @@ function toggleScanner(targetInputId) {
             useBarCodeDetectorIfSupported: false
           },
           videoConstraints: {
+            deviceId: selectedCamera.deviceId,
             facingMode: "environment",
             width: { min: 640, ideal: 1280, max: 1920 },
             height: { min: 480, ideal: 720, max: 1080 }
@@ -327,13 +330,14 @@ function toggleScanner(targetInputId) {
           <strong>Consejos para QR:</strong><br>
           - Centra el código en el cuadro<br>
           - Mantén la cámara estable<br>
-          - Asegura buena iluminación
+          - Asegura buena iluminación<br>
+          - Permite el acceso a la cámara cuando se solicite
         `;
         
         readerElement.parentNode.insertBefore(helpText, readerElement.nextSibling);
 
         qrScanner.start(
-          { facingMode: "environment" },
+          selectedCamera.deviceId,
           config,
           (decodedText) => {
             if (targetInputId === "newCounter" && decodedText.includes(';')) {
@@ -365,7 +369,7 @@ function toggleScanner(targetInputId) {
       }
     }).catch(err => {
       console.error("Error al acceder a la cámara:", err);
-      alert("Error al acceder a la cámara: " + err);
+      alert("Error al acceder a la cámara. Por favor, asegúrate de dar permisos cuando se soliciten.");
     });
   }
 }
