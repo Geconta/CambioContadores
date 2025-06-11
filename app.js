@@ -294,12 +294,10 @@ function toggleScanner(targetInputId) {
   } else {
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
-        // Mejorada la detección de cámara trasera para iOS
         const backCamera = devices.find(device => 
           device.label.toLowerCase().includes('back') || 
           device.label.toLowerCase().includes('trasera') ||
           device.label.toLowerCase().includes('environment') ||
-          // En iOS, la cámara trasera suele ser el último dispositivo
           (devices.length > 1 && device === devices[devices.length - 1])
         ) || devices[0];
 
@@ -311,8 +309,11 @@ function toggleScanner(targetInputId) {
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
           formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: false
+          },
           videoConstraints: {
-            facingMode: { exact: "environment" }, // Forzar cámara trasera
+            facingMode: "environment",
             width: { min: 640, ideal: 1280, max: 1920 },
             height: { min: 480, ideal: 720, max: 1080 }
           }
@@ -325,13 +326,14 @@ function toggleScanner(targetInputId) {
         helpText.innerHTML = `
           <strong>Consejos para QR:</strong><br>
           - Centra el código en el cuadro<br>
-          - Mantén la cámara estable
+          - Mantén la cámara estable<br>
+          - Asegura buena iluminación
         `;
         
         readerElement.parentNode.insertBefore(helpText, readerElement.nextSibling);
 
         qrScanner.start(
-          backCamera.id,
+          { facingMode: "environment" },
           config,
           (decodedText) => {
             if (targetInputId === "newCounter" && decodedText.includes(';')) {
