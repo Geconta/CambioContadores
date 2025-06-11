@@ -290,39 +290,60 @@ function toggleScanner() {
       readerElement.classList.add("hidden");
     });
   } else {
-    qrScanner = new Html5Qrcode("reader");
-    readerElement.classList.remove("hidden");
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        // Selecciona la cámara trasera si está disponible
+        const backCamera = devices.find(device => device.label.toLowerCase().includes("back")) || devices[0];
 
-    qrScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      (qrCodeMessage) => {
-        const focused = document.activeElement.id;
-        if (focused === "newCounter") {
-          // Procesar el código QR del contador
-          let numeroContador = qrCodeMessage;
-          if (qrCodeMessage.includes(';')) {
-            numeroContador = qrCodeMessage.split(';')[1];
-            numeroContador = numeroContador.slice(0, -4);
+        qrScanner = new Html5Qrcode("reader");
+        readerElement.classList.remove("hidden");
+
+        qrScanner.start(
+          backCamera.id,
+          {
+            fps: 10,
+            qrbox: 300,
+            experimentalFeatures: {
+              useBarCodeDetectorIfSupported: true
+            }
+          },
+          (qrCodeMessage) => {
+            const focused = document.activeElement.id;
+
+            if (focused === "newCounter") {
+              let numeroContador = qrCodeMessage.includes(';') 
+                ? qrCodeMessage.split(';')[1].slice(0, -4) 
+                : qrCodeMessage;
+              document.getElementById("newCounter").value = numeroContador;
+            } else if (focused === "radioModule") {
+              let numeroEmisor = qrCodeMessage.substring(1, 14);
+              document.getElementById("radioModule").value = numeroEmisor;
+            }
+
+            // Pequeño retardo antes de cerrar
+            setTimeout(() => {
+              qrScanner.stop().then(() => {
+                scannerActive = false;
+                readerElement.classList.add("hidden");
+              });
+            }, 500);
+          },
+          (errorMessage) => {
+            // Puedes loguear errores aquí si lo deseas
           }
-          document.getElementById("newCounter").value = numeroContador;
-        } else if (focused === "radioModule") {
-          // Procesar el código QR del emisor
-          // Tomar los siguientes 13 dígitos después del primer carácter
-          let numeroEmisor = qrCodeMessage.substring(1, 14);
-          document.getElementById("radioModule").value = numeroEmisor;
-        }
-        qrScanner.stop().then(() => {
-          scannerActive = false;
-          readerElement.classList.add("hidden");
-        });
-      },
-      (errorMessage) => {}
-    );
+        );
 
-    scannerActive = true;
+        scannerActive = true;
+        alert("Apunta la cámara hacia el código QR. Toca sobre la pantalla si necesitas enfocar manualmente.");
+      } else {
+        alert("No se detectaron cámaras disponibles.");
+      }
+    }).catch(err => {
+      alert("Error accediendo a la cámara: " + err);
+    });
   }
 }
+
 
 // Mostrar lista de órdenes guardadas
 // Mostrar lista de órdenes guardadas
