@@ -299,45 +299,46 @@ function toggleScanner(targetInputId) {
         qrScanner = new Html5Qrcode("reader");
         readerElement.classList.remove("hidden");
 
+        // Configuración mejorada para códigos de barras
         const config = {
-          fps: 15,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
+          fps: 10, // Reducido para mejor rendimiento
+          qrbox: { width: 300, height: 150 }, // Rectángulo más ancho para códigos de barras
+          aspectRatio: 1.777778, // Aspecto 16:9 para mejor captura
           experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
           },
           rememberLastUsedCamera: true,
-          // Configuración mejorada para códigos de barras
           formatsToSupport: [
             Html5QrcodeSupportedFormats.QR_CODE,
             Html5QrcodeSupportedFormats.EAN_13,
             Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-            Html5QrcodeSupportedFormats.CODE_93
+            Html5QrcodeSupportedFormats.CODE_39
           ],
           videoConstraints: {
             width: { min: 640, ideal: 1280, max: 1920 },
             height: { min: 480, ideal: 720, max: 1080 },
-            facingMode: "environment"
+            facingMode: "environment",
+            advanced: [{
+              focusMode: "continuous"
+            }]
           }
         };
 
-        // Remover mensaje de ayuda existente si hay uno
+        // Remover mensaje anterior
         if (existingHelpText) existingHelpText.remove();
 
-        // Crear nuevo mensaje de ayuda
+        // Mensaje de ayuda actualizado
         const helpText = document.createElement('p');
         helpText.className = 'text-center text-sm mt-2 text-gray-600 scanner-help-text';
         helpText.innerHTML = `
-          Consejos para escanear:<br>
-          - Asegura buena iluminación<br>
-          - Evita reflejos en el código<br>
-          - Mantén la cámara estable<br>
-          - Para códigos de barras: mantén el código horizontal<br>
-          - Para QR: centra el código en el cuadro
+          <strong>Consejos para escanear:</strong><br>
+          Para códigos de barras:<br>
+          - Mantén el código HORIZONTAL<br>
+          - Distancia: 10-15 cm<br>
+          - Evita reflejos y sombras<br><br>
+          Para códigos QR:<br>
+          - Centra el código en el cuadro<br>
+          - Mantén la cámara estable
         `;
         readerElement.parentNode.insertBefore(helpText, readerElement.nextSibling);
 
@@ -345,7 +346,7 @@ function toggleScanner(targetInputId) {
           backCamera.id,
           config,
           (decodedText) => {
-            // Procesar el código escaneado según el tipo de entrada
+            console.log("Código detectado:", decodedText); // Debug
             if (targetInputId === "newCounter") {
               if (decodedText.includes(';')) {
                 // Es un QR de contador
@@ -358,7 +359,10 @@ function toggleScanner(targetInputId) {
               document.getElementById(targetInputId).value = numeroEmisor;
             }
 
-            // Cerrar el scanner después de una lectura exitosa
+            // Feedback visual de éxito
+            alert("¡Código leído correctamente!");
+
+            // Cerrar el scanner
             setTimeout(() => {
               qrScanner.stop().then(() => {
                 scannerActive = false;
