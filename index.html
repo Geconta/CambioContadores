@@ -43,7 +43,7 @@
     <form id="newCounterForm" class="space-y-3">
       <div class="relative">
         <input id="newCounter" placeholder="Nuevo Contador" class="w-full p-2 border rounded" />
-        <button type="button" onclick="toggleScanner('newCounter')" class="absolute right-2 top-2 text-purple-600" title="Escanear Código">
+        <button type="button" onclick="toggleScanner('newCounter', 'qr')" class="absolute right-2 top-2 text-purple-600" title="Escanear QR">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2m0 0H8m4 0v1m5-1h-2m-6 0H4" />
           </svg>
@@ -55,7 +55,15 @@
       <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Guardar Orden</button>
     </form>
 
-    <button onclick="toggleScanner()" class="mt-2 bg-purple-600 text-white px-4 py-2 rounded">Escanear QR</button>
+    <div class="flex space-x-2">
+      <button onclick="toggleScanner('newCounter', 'qr')" class="mt-2 bg-purple-600 text-white px-4 py-2 rounded flex-1">
+        Escanear QR
+      </button>
+      <button onclick="toggleScanner('newCounter', 'barcode')" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded flex-1">
+        Escanear Código de Barras
+      </button>
+    </div>
+
     <div id="reader" class="hidden w-full h-96 my-4 border rounded bg-black">
       <style>
         #reader video {

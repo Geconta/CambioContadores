@@ -281,7 +281,7 @@ function exportToCSV() {
 
 
 // Activar o desactivar escáner QR
-function toggleScanner(targetInputId) {
+function toggleScanner(targetInputId, scanType = 'qr') {
   const readerElement = document.getElementById("reader");
   const existingHelpText = document.querySelector('.scanner-help-text');
 
@@ -299,47 +299,36 @@ function toggleScanner(targetInputId) {
         qrScanner = new Html5Qrcode("reader");
         readerElement.classList.remove("hidden");
 
-        // Configuración mejorada para códigos de barras
+        // Configuración según tipo de escaneo
         const config = {
-          fps: 10, // Reducido para mejor rendimiento
-          qrbox: { width: 300, height: 150 }, // Rectángulo más ancho para códigos de barras
-          aspectRatio: 1.777778, // Aspecto 16:9 para mejor captura
+          fps: 10,
+          qrbox: scanType === 'barcode' ? { width: 300, height: 100 } : { width: 250, height: 250 },
+          aspectRatio: scanType === 'barcode' ? 1.777778 : 1.0,
           experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
           },
-          rememberLastUsedCamera: true,
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39
-          ],
-          videoConstraints: {
-            width: { min: 640, ideal: 1280, max: 1920 },
-            height: { min: 480, ideal: 720, max: 1080 },
-            facingMode: "environment",
-            advanced: [{
-              focusMode: "continuous"
-            }]
-          }
+          formatsToSupport: scanType === 'barcode' ? 
+            [
+              Html5QrcodeSupportedFormats.EAN_13,
+              Html5QrcodeSupportedFormats.CODE_128,
+              Html5QrcodeSupportedFormats.CODE_39
+            ] : 
+            [Html5QrcodeSupportedFormats.QR_CODE]
         };
 
-        // Remover mensaje anterior
+        // Mensaje de ayuda específico
         if (existingHelpText) existingHelpText.remove();
-
-        // Mensaje de ayuda actualizado
         const helpText = document.createElement('p');
         helpText.className = 'text-center text-sm mt-2 text-gray-600 scanner-help-text';
-        helpText.innerHTML = `
-          <strong>Consejos para escanear:</strong><br>
-          Para códigos de barras:<br>
-          - Mantén el código HORIZONTAL<br>
-          - Distancia: 10-15 cm<br>
-          - Evita reflejos y sombras<br><br>
-          Para códigos QR:<br>
-          - Centra el código en el cuadro<br>
-          - Mantén la cámara estable
-        `;
+        helpText.innerHTML = scanType === 'barcode' ? 
+          `<strong>Consejos para códigos de barras:</strong><br>
+           - Mantén el código HORIZONTAL<br>
+           - Distancia: 10-15 cm<br>
+           - Evita reflejos y sombras` :
+          `<strong>Consejos para QR:</strong><br>
+           - Centra el código en el cuadro<br>
+           - Mantén la cámara estable`;
+        
         readerElement.parentNode.insertBefore(helpText, readerElement.nextSibling);
 
         qrScanner.start(
