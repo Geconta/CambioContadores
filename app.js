@@ -302,7 +302,9 @@ function toggleScanner(targetInputId, scanType = 'qr') {
         // Configuración según tipo de escaneo
         const config = {
           fps: 10,
-          qrbox: scanType === 'barcode' ? { width: 300, height: 100 } : { width: 250, height: 250 },
+          qrbox: scanType === 'barcode' ? 
+            { width: 300, height: 100 } : // Para códigos de barras
+            { width: 250, height: 250 },  // Para QR
           aspectRatio: scanType === 'barcode' ? 1.777778 : 1.0,
           experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
@@ -311,7 +313,8 @@ function toggleScanner(targetInputId, scanType = 'qr') {
             [
               Html5QrcodeSupportedFormats.EAN_13,
               Html5QrcodeSupportedFormats.CODE_128,
-              Html5QrcodeSupportedFormats.CODE_39
+              Html5QrcodeSupportedFormats.CODE_39,
+              Html5QrcodeSupportedFormats.EAN_8
             ] : 
             [Html5QrcodeSupportedFormats.QR_CODE]
         };
@@ -336,16 +339,20 @@ function toggleScanner(targetInputId, scanType = 'qr') {
           config,
           (decodedText) => {
             console.log("Código detectado:", decodedText); // Debug
+            
+            // Procesar según el campo objetivo y tipo de código
             if (targetInputId === "newCounter") {
-              if (decodedText.includes(';')) {
-                // Es un QR de contador
+              if (scanType === 'qr' && decodedText.includes(';')) {
                 decodedText = decodedText.split(';')[1].slice(0, -4);
               }
               // Si es código de barras, se usa tal cual
-              document.getElementById(targetInputId).value = decodedText;
+              document.getElementById("newCounter").value = decodedText;
             } else if (targetInputId === "radioModule") {
-              let numeroEmisor = decodedText.substring(1, 14);
-              document.getElementById(targetInputId).value = numeroEmisor;
+              let numeroEmisor = decodedText;
+              if (decodedText.length > 14) {
+                numeroEmisor = decodedText.substring(1, 14);
+              }
+              document.getElementById("radioModule").value = numeroEmisor;
             }
 
             // Feedback visual de éxito
