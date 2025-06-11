@@ -41,7 +41,14 @@
     <div id="filaSeleccionadaPreview" class="mb-4"></div>
 
     <form id="newCounterForm" class="space-y-3">
-      <input id="newCounter" placeholder="Nuevo Contador" class="w-full p-2 border rounded" />
+      <div class="relative">
+        <input id="newCounter" placeholder="Nuevo Contador" class="w-full p-2 border rounded" />
+        <button type="button" onclick="toggleScanner('newCounter')" class="absolute right-2 top-2 text-purple-600" title="Escanear Código">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2m0 0H8m4 0v1m5-1h-2m-6 0H4" />
+          </svg>
+        </button>
+      </div>
       <input id="radioModule" placeholder="Radio del Módulo" class="w-full p-2 border rounded" />
       <input id="lecturaAntigua" placeholder="Lectura Antigua" class="w-full p-2 border rounded" />
       <input id="lecturaNueva" placeholder="Lectura Nueva" class="w-full p-2 border rounded" />
@@ -56,6 +63,9 @@
         }
         #reader__scan_region {
           background: rgba(0, 0, 0, 0.7);
+        }
+        #reader__dashboard_section_swaplink {
+          display: none !important;
         }
       </style>
     </div>

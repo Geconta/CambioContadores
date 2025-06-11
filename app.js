@@ -281,7 +281,7 @@ function exportToCSV() {
 
 
 // Activar o desactivar escáner QR
-function toggleScanner() {
+function toggleScanner(targetInputId) {
   const readerElement = document.getElementById("reader");
 
   if (scannerActive) {
@@ -305,24 +305,19 @@ function toggleScanner() {
             useBarCodeDetectorIfSupported: true
           },
           rememberLastUsedCamera: true,
-          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-          // Mejorar la configuración para diferentes fondos
-          videoConstraints: {
-            width: { min: 640, ideal: 1280, max: 1920 },
-            height: { min: 480, ideal: 720, max: 1080 },
-            facingMode: "environment",
-            // Ajustar configuración de la cámara
-            advanced: [{
-              brightness: { min: 0, max: 255, ideal: 220 },
-              contrast: { min: 0, max: 255, ideal: 128 },
-              whiteBalanceMode: "continuous",
-              exposureMode: "continuous"
-            }]
-          }
+          supportedScanTypes: [
+            Html5QrcodeScanType.SCAN_TYPE_CAMERA,
+            Html5QrcodeScanType.SCAN_TYPE_FILE
+          ],
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.DATA_MATRIX
+          ]
         };
 
-        // Agregar mensaje de ayuda visual
         const helpText = document.createElement('p');
         helpText.className = 'text-center text-sm mt-2 text-gray-600';
         helpText.innerHTML = `
@@ -330,45 +325,49 @@ function toggleScanner() {
           - Asegura buena iluminación<br>
           - Evita reflejos en el código<br>
           - Mantén la cámara estable<br>
-          - Si el fondo no es blanco, acerca más la cámara
+          - Si el código es pequeño, acerca más la cámara
         `;
         readerElement.parentNode.insertBefore(helpText, readerElement.nextSibling);
 
         qrScanner.start(
           backCamera.id,
           config,
-          (qrCodeMessage) => {
-            const focused = document.activeElement.id;
-
-            if (focused === "newCounter") {
-              let numeroContador = qrCodeMessage.includes(';') 
-                ? qrCodeMessage.split(';')[1].slice(0, -4) 
-                : qrCodeMessage;
-              document.getElementById("newCounter").value = numeroContador;
-            } else if (focused === "radioModule") {
-              let numeroEmisor = qrCodeMessage.substring(1, 14);
-              document.getElementById("radioModule").value = numeroEmisor;
+          (decodedText) => {
+            // Procesar el código escaneado según el tipo de entrada
+            if (targetInputId === "newCounter") {
+              if (decodedText.includes(';')) {
+                // Es un QR de contador
+                decodedText = decodedText.split(';')[1].slice(0, -4);
+              }
+              // Si es código de barras, se usa tal cual
+              document.getElementById(targetInputId).value = decodedText;
+            } else if (targetInputId === "radioModule") {
+              let numeroEmisor = decodedText.substring(1, 14);
+              document.getElementById(targetInputId).value = numeroEmisor;
             }
 
+            // Cerrar el scanner después de una lectura exitosa
             setTimeout(() => {
               qrScanner.stop().then(() => {
                 scannerActive = false;
                 readerElement.classList.add("hidden");
+                helpText.remove();
               });
             }, 500);
           },
           (errorMessage) => {
-            console.log("QR error:", errorMessage);
+            console.log("Error al escanear:", errorMessage);
           }
         );
 
         scannerActive = true;
-        alert("Apunta la cámara hacia el código QR. Mantén el código en el centro del cuadro y acerca la cámara si es necesario.");
+
       } else {
-        alert("No se detectaron cámaras disponibles.");
+        alert("No se detectaron cámaras disponibles");
       }
     }).catch(err => {
-      alert("Error accediendo a la cámara: " + err);
+      console.error("Error al acceder a la cámara:", err);
+      alert("Error al acceder a la cámara: " + err);
     });
   }
 }
